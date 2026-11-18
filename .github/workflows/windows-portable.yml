@@ -1,0 +1,22 @@
+name: Windows portable
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build portable folder
+        run: powershell -ExecutionPolicy Bypass -File scripts/build_windows.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: IcloudDrop-portable
+          path: dist/IcloudDrop-portable.zip
