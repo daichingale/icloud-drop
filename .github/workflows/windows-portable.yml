@@ -1,22 +1,68 @@
+# Origin には Windows のビルド機械がない。
+# このファイルは、コードを GitHub に送ったあとに GitHub Actions の Windows で動く。
+# できた zip はリリース「windows」に置き、次のアドレスでダウンロードできる。
+# https://github.com/<owner>/<repo>/releases/download/windows/IcloudDrop-portable.zip
 name: Windows portable
 
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     tags:
       - "v*"
+
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: windows-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Build portable folder
+
+      - name: Test and build the portable zip
+        shell: pwsh
         run: powershell -ExecutionPolicy Bypass -File scripts/build_windows.ps1
-      - uses: actions/upload-artifact@v4
+
+      - name: Keep a copy on the Actions run
+        uses: actions/upload-artifact@v4
         with:
           name: IcloudDrop-portable
           path: dist/IcloudDrop-portable.zip
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish the zip at a stable download address
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Continue"
+          $tag = "windows"
+          $notes = "main が更新されるたびに、この zip を差し替えます。展開したフォルダごと置き、中の IcloudDrop.exe を起動してください。"
+          gh release view $tag --json tagName 1>$null 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --title "Windows版" --notes $notes --latest=false
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          gh release upload $tag dist/IcloudDrop-portable.zip --clobber
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $version = "${{ github.ref_name }}"
+            gh release view $version --json tagName 1>$null 2>$null
+            if ($LASTEXITCODE -ne 0) {
+              gh release create $version --title $version --notes "この版の Windows 用 zip です。" --latest
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            }
+            gh release upload $version dist/IcloudDrop-portable.zip --clobber
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          $url = "${{ github.server_url }}/${{ github.repository }}/releases/download/windows/IcloudDrop-portable.zip"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "ダウンロード: $url"
+          Write-Host $url

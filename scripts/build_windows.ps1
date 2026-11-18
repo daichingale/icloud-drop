@@ -5,6 +5,7 @@ $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
 python -m pip install -e ".[icloud,keyring,dev]" pyinstaller
+$env:QT_QPA_PLATFORM = "offscreen"
 python -m pytest
 python -m PyInstaller --noconfirm --clean icloud_drop.spec
 

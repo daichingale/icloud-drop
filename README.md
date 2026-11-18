@@ -96,9 +96,32 @@ data\
 
 exeの隣に書けないときだけ、`%LOCALAPPDATA%\IcloudDrop` に退避します。そのときは画面のログに残します。場所を指定したいときは、環境変数 `ICLOUD_DROP_DATA` にフォルダを指定して起動します。
 
+## Windows版をダウンロードする
+
+このアプリの置き場所は Origin です。Origin 自体には Windows でビルドする機械がありません。つながる CI（Depot や EngFlow）も Linux だけです。手元の Windows がなくても作れるように、GitHub Actions の Windows 機械で zip を作り、決まったアドレスに置く設定を入れてあります。
+
+いまのコードは GitHub にはまだありません。GitHub のリポジトリをこちらから新しく作ることはしていません。次の一度だけ、自分の GitHub（Cursor に接続済みの `daichingale`）で空のリポジトリを作り、このコードを送ってください。
+
+1. https://github.com/new を開く。名前は例えば `icloud-drop`。README も .gitignore も追加しない（空のまま）。
+2. 誰でもリンクだけで受け取れるようにするなら Public。自分だけなら Private。Private のファイルは、ブラウザで GitHub にログインしていないとダウンロードできません。
+3. このフォルダで、次を実行する。`<名前>` は作ったリポジトリ名です。
+
+```powershell
+git remote add github https://github.com/daichingale/<名前>.git
+git push github main
+```
+
+送ったあと、GitHub の Actions が Windows 上でビルドします。終わると、次のアドレスのファイルが差し替わります。
+
+```text
+https://github.com/daichingale/<名前>/releases/download/windows/IcloudDrop-portable.zip
+```
+
+進行はリポジトリの Actions タブで見られます。失敗したときは、そのログを開きます。もう一度だけ走らせたいときは、Actions の「Windows portable」を選び、「Run workflow」を押します。
+
 ## 自分でWindows版を作る
 
-このリポジトリを手元の Windows 10/11（64ビット）で開きます。Python 3.12 を、ユーザー権限で入れておきます（「すべてのユーザーにインストール」は不要です）。
+手元に Windows があるときの手順です。Python 3.12 を、ユーザー権限で入れておきます（「すべてのユーザーにインストール」は不要です）。
 
 ```powershell
 py -3.12 -m venv .venv
@@ -109,9 +132,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build_windows.ps1
 
 `py` が無いときは、1行目を `python -m venv .venv` にします。
 
-できあがりは `dist\IcloudDrop-portable.zip` です。中は `IcloudDrop\IcloudDrop.exe` と、同じフォルダのファイル一式です。テストもこのスクリプトの中で実行します。
-
-GitHub Actions を使える場合は、`.github/workflows/windows-portable.yml` が同じZIPを作って成果物にします。タグ `v*` を push するか、手動実行です。
+できあがりは `dist\IcloudDrop-portable.zip` です。中は `IcloudDrop\IcloudDrop.exe` と、同じフォルダのファイル一式です。テストもこのスクリプトの中で実行します。GitHub に送った場合は、上の「Windows版をダウンロードする」のアドレスから同じ zip を取れます。
 
 ソースのまま動かすとき（開発用）:
 
