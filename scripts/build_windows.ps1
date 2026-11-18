@@ -1,4 +1,4 @@
-# 学校のパソコンでも、そのまま起動できるフォルダを作る。
+﻿# 学校のパソコンでも、そのまま起動できるフォルダを作る。
 # 管理者権限は使わない。レジストリにも書かない。
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
